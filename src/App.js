@@ -1,12 +1,12 @@
-import React from 'react'
+import React from 'react';
+import NavBar from './components/NavBar'
+import generalStyling from './styles/generalStyling.css';
 
 function App() {
   return (
-    <>
-      <div>
-        Chroniker Remade
-      </div>
-    </>
+    <div>
+      <NavBar />
+    </div>
   );
 }
 

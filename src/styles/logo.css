@@ -1,0 +1,28 @@
+.triangle {
+    font-size: 40px;
+    position: absolute;
+    transition: color 200ms ease;
+}
+
+.firstTriangle {
+    top: -10%;
+    left: 30%;
+    transform: rotate(90deg);
+    color: #FFD23F;
+
+}
+
+.secondTriangle {
+    left: 17%;
+    top:7%;
+    color: #C44536;
+}
+
+.thirdTriangle {
+    bottom: -10%;
+    left: 30%;
+    transform: rotate(-90deg);
+    color: #A9A8A9 ;
+
+}
+

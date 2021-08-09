@@ -1,0 +1,16 @@
+.nav-bar {
+    background-color: #1E272C;
+}
+
+.menu-item {
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    color: #A9A8A9;
+    font-weight: 300;
+    font-size: 18px;
+    padding: 0 10px;
+}
+
+.menu-item:hover {
+    color: rgb(157, 123, 123);
+}
