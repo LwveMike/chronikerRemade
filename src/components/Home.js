@@ -62,7 +62,7 @@ const FirstButton = style(Button)`
     }
 `;
 
-const SecondButton = style(Button)`
+export const SecondButton = style(Button)`
     background-color: rgb(40, 61, 59);
     &:hover {
         background-color: rgb(20, 30, 29);
