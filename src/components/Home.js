@@ -1,14 +1,26 @@
-import React from 'react';
-import generalStyling from '../styles/generalStyling.css';
-import style from 'styled-components';
+import React, { useRef } from 'react';
+import style, { createGlobalStyle } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
 import { faTimes } from '@fortawesome/free-solid-svg-icons'
-import home from '../styles/home.css';
+import { useSelector, useDispatch } from 'react-redux'
+import Note from './Note'
+
+export const GlobalStyle = createGlobalStyle`
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        background-color: ${props => props.pageColor}
+    }
+`;
+
 
 export const PageContainer = style.div`
-    background-color: #263238;
+    background-color: ${props => props.pageColor};
     padding-bottom: 20px;
 `;
 
@@ -52,9 +64,9 @@ export const Button = style.div`
 `;
 
 const FirstButton = style(Button)`
-    background-color: rgb(16, 74, 78);
+    background-color: ${props => props.plusIconCircleColor};
     &:hover {
-        background-color: rgb(7, 34, 36);
+        background-color: ${props => props.plusIconCircleColorOnHover};
         &:before {
             display: block;
             content: 'add';
@@ -63,20 +75,21 @@ const FirstButton = style(Button)`
 `;
 
 export const SecondButton = style(Button)`
-    background-color: rgb(40, 61, 59);
+    background-color: ${props => props.playButtonCircleColor};
     &:hover {
-        background-color: rgb(20, 30, 29);
+        background-color: ${props => props.playButtonCircleColorOnHover};
         &:before {
             display: block;
             content: 'play/pause';
         }
     }
+    
 `;
 
 const ThirdButton = style(Button)`
-    background-color: rgb(119, 46, 37);
+    background-color: ${props => props.xButtonCircleColor};
     &:hover {
-        background-color: rgb(80, 31, 25);
+        background-color:  ${props => props.xButtonCircleColorOnHover};
         &::after {
             display: block;
         }
@@ -93,7 +106,7 @@ const ThirdButton = style(Button)`
         font-weight: 300;
         font-style: normal;
         font-size: 16px;
-        color: rgb(157, 123, 123);
+        color: ${props => props.textColor};
         position: absolute;
         left: 120%;
         display: none;
@@ -104,11 +117,10 @@ const ThirdButton = style(Button)`
 `;
 
 const Counter = style.div`
-    font-family: Roboto;
-    font-weight: 300;
-    font-style: normal;
-    font-size: 36px;
-    color: rgb(157, 123, 123);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    color: ${props => props.textColor};
 `;
 
 const ButtonsContainer = style.div`
@@ -117,30 +129,83 @@ const ButtonsContainer = style.div`
     align-items: center;
 `;
 
+const ReduxElement = style.div`
+font-family: Roboto;
+font-weight: 300;
+font-style: normal;
+font-size: 36px;
+`;
+
+const NotesContainer = style.div`
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 1300px;
+    background-color: white;
+    margin: 20px auto;
+
+`;
+
+
+
+const selectNotes = state => state.notes;
+const selectThemes = state => state.themes;
+
+
+
 
 function Home() {
-    return (<PageContainer>
-        <BigCounter>
-            <ButtonsContainer>
-                <FirstButton>
-                    <FontAwesomeIcon style={{ fontSize: '25px', color: '#A9A8A9' }} icon={faPlus} />
-                </FirstButton>
-
-                <SecondButton>
-                    <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: '#A9A8A9' }} icon={faCaretRight} />
-                </SecondButton>
-
-                <ThirdButton>
-                    <FontAwesomeIcon style={{ fontSize: '30px', color: '#A9A8A9' }} icon={faTimes} />
-                </ThirdButton>
-            </ButtonsContainer>
-
-            <Counter>00 : 00 : 00 | 0.00</Counter>
 
 
-        </BigCounter>
 
-    </PageContainer >);
+    const notes = useSelector(selectNotes);
+    const themes = useSelector(selectThemes);
+
+    const dispatch = useDispatch();
+
+    const notesContainerRef = useRef(null);
+
+
+    return (<>
+        <GlobalStyle pageColor={themes.colors.pageColor} />
+        <PageContainer pageColor={themes.colors.pageColor}>
+            <BigCounter>
+                <ButtonsContainer>
+                    <FirstButton plusIconCircleColor={themes.colors.plusIconCircleColor} plusIconCircleColorOnHover={themes.colors.plusIconCircleColorOnHover}>
+                        <FontAwesomeIcon style={{ fontSize: '25px', color: themes.colors.iconsColor }} icon={faPlus} />
+                    </FirstButton>
+
+                    <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover}>
+                        <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: themes.colors.iconsColor }} icon={faCaretRight} />
+                    </SecondButton>
+
+                    <ThirdButton textColor={themes.colors.textColor} xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover}>
+                        <FontAwesomeIcon style={{ fontSize: '30px', color: themes.colors.iconsColor }} icon={faTimes} />
+                    </ThirdButton>
+                </ButtonsContainer>
+
+                <Counter textColor={themes.colors.textColor}>
+                    <ReduxElement value='0' />
+                    <ReduxElement> : </ReduxElement>
+                    <ReduxElement value='0' />
+                    <ReduxElement> : </ReduxElement>
+                    <ReduxElement value='0' />
+                    <ReduxElement> | </ReduxElement>
+                    <ReduxElement value='0' />
+                </Counter>
+
+
+            </BigCounter>
+
+            <NotesContainer ref={notesContainerRef}>
+                {notes.map(note => {
+                    return (<Note key={note.id} note={note} />);
+                })}
+            </NotesContainer>
+
+        </PageContainer >
+    </>);
 }
 
 

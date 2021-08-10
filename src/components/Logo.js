@@ -3,6 +3,8 @@ import style from 'styled-components';
 import logoStyling from '../styles/logo.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
+import { GlobalStyle } from './Home'
+import { useSelector } from 'react-redux'
 
 const Circle = style.div`
     width: 46px;
@@ -11,12 +13,20 @@ const Circle = style.div`
     background-color: #283D3B;
     position: relative;
     cursor: pointer;
+
+    .firstTriangle {
+        color: ${props => props.logoYellow}
+    }
+
+    .thirdTriangle {
+        color: ${props => props.logoGray}
+    }
     &:hover {
         .firstTriangle {
-            color: #A9A8A9;
+            color: ${props => props.logoGray}
         }
         .thirdTriangle {
-            color: #FFD23F;
+            color: ${props => props.logoYellow}
         }
     }
 `;
@@ -25,12 +35,16 @@ const Circle = style.div`
 
 
 
-
+const selectThemes = state => state.themes;
 
 
 function Logo() {
+
+    const themes = useSelector(selectThemes);
+
     return <>
-        <Circle>
+        <GlobalStyle pageColor={themes.colors.pageColor} />
+        <Circle logoGray={themes.colors.logoGray} logoYellow={themes.colors.logoYellow}>
             <FontAwesomeIcon className='triangle firstTriangle' icon={faCaretRight} />
             <FontAwesomeIcon className='triangle secondTriangle' icon={faCaretRight} />
             <FontAwesomeIcon className='triangle thirdTriangle' icon={faCaretRight} />

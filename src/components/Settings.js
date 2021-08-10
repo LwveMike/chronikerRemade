@@ -1,9 +1,11 @@
 import React from 'react';
-import { PageContainer, Button } from './Home';
+import { PageContainer, Button, GlobalStyle } from './Home';
 import style from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell } from '@fortawesome/free-solid-svg-icons'
 import Switch from '@material-ui/core/Switch';
+import { useSelector, useDispatch } from 'react-redux'
+import ACTIONS from '../features/Actions'
 
 
 const Field = style.div`
@@ -17,16 +19,16 @@ const Field = style.div`
 export const PinkText = style.p`
     font-family: Roboto;
     font-weight: 300;
-    color: rgb(162, 152, 150);
+    color: ${props => props.textColor};
     line-height: 1.5em;
     width: 250px;
     padding-right: 20px;
 `;
 
 const Bell = style(Button)`
-background-color: rgb(16, 74, 78);
+background-color: ${props => props.bellNotificationCircleColor};
 &:hover {
-    background-color: rgb(7, 34, 36);
+    background-color: ${props => props.bellNotificationCircleColorOnHover};
 }
 `;
 
@@ -39,8 +41,8 @@ height: 34px;
 text-align: center;
 vertical-align: middle;
 font-family: Roboto;
-color: rgb(162, 152, 150);
-background-color: rgb(64, 85, 94);
+color: ${props => props.textColor};
+background-color: ${props => props.inputBackgroundColor};
 outline: none;
 border: none;
 `;
@@ -52,33 +54,41 @@ const Separator = style.div`
 `;
 
 
+const selectThemes = state => state.themes;
+
 
 function Settings() {
 
-    return (<PageContainer>
-        <Field>
-            <PinkText>Request notification permission</PinkText>
-            <Separator>
-                <Bell>
-                    <FontAwesomeIcon style={{ color: '#A9A8A9' }} icon={faBell} />
-                </Bell>
-            </Separator>
-        </Field>
+    const themes = useSelector(selectThemes);
+    const dispatch = useDispatch();
 
-        <Field>
-            <PinkText>Notify every ( minutes )</PinkText>
-            <Separator>
-                <NotificationInput defaultValue='0' />
-            </Separator>
-        </Field>
+    return (<>
+        <GlobalStyle pageColor={themes.colors.pageColor} />
+        <PageContainer pageColor={themes.colors.pageColor}>
+            <Field>
+                <PinkText textColor={themes.colors.textColor}>Request notification permission</PinkText>
+                <Separator>
+                    <Bell bellNotificationCircleColor={themes.colors.bellNotificationCircleColor} bellNotificationCircleColorOnHover={themes.colors.bellNotificationCircleColorOnHover}>
+                        <FontAwesomeIcon style={{ color: themes.colors.iconsColor }} icon={faBell} />
+                    </Bell>
+                </Separator>
+            </Field>
 
-        <Field>
-            <PinkText>Dark Mode</PinkText>
-            <Separator>
-                <Switch />
-            </Separator>
-        </Field>
-    </PageContainer>);
+            <Field>
+                <PinkText textColor={themes.colors.textColor}>Notify every ( minutes )</PinkText>
+                <Separator>
+                    <NotificationInput textColor={themes.colors.textColor} inputBackgroundColor={themes.colors.inputBackgroundColor} defaultValue='0' />
+                </Separator>
+            </Field>
+
+            <Field>
+                <PinkText textColor={themes.colors.textColor}>Dark Mode</PinkText>
+                <Separator>
+                    <Switch value={themes.checked} checked={themes.checked} onChange={() => dispatch({ type: ACTIONS.CHANGE_THEME })} />
+                </Separator>
+            </Field>
+        </PageContainer>
+    </>);
 
 
 }

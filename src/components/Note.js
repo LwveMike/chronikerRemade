@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import style from 'styled-components';
-import { Button, SecondButton } from './Home';
+import { GlobalStyle } from './Home';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
 import { faCaretUp } from '@fortawesome/free-solid-svg-icons'
@@ -10,19 +10,81 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'
 import 'react-quill/dist/quill.core.css'
 import 'react-quill/dist/quill.bubble.css'
+import { useSelector, useDispatch } from 'react-redux'
+import ACTIONS from '../features/Actions'
 
 
 const Rectangle = style.div`
     width: 400px;
     height: 360px;
-    background-color: #40555E;
+    background-color: ${props => props.noteBodyColor};
     border-radius: 5px;
+    box-shadow: 0px 0px 30px -15px rgba(0,0,0,0.75);
 `;
+
+const Button = style.div`
+    width: 40px;
+    height: 40px;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;  
+    border-radius: 50%;
+    transition: background-color 300ms ease;
+    cursor: pointer;
+    margin: 10px;
+    &::before {
+        transition: display 400ms ease;
+        content: '';
+        font-family: 'Roboto', sans-serif;
+        font-weight: 400;
+        position: absolute;
+        background-color:black;
+        color: white;
+        padding: 9px 6px;
+        border-radius: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -45px;
+        font-variant: small-caps;
+        font-size: 14px;
+        display: none;
+        text-align: center;
+    }
+`;
+
+
+const SecondButton = style(Button)`
+    background-color: ${props => props.playButtonCircleColor};
+    &:hover {
+        background-color: ${props => props.playButtonCircleColorOnHover};
+        &:before {
+            display: block;
+            content: 'play/pause';
+        }
+    }
+    
+`;
+
+
+
+const DotsButton = style(Button)`
+    background-color: transparent;
+    &:hover {
+        background-color: ${props => props.threeDotsCircleColorOnHover};
+    }
+
+    .icon {
+        color: ${props => props.iconsColor};
+        font-size: 25px;
+    }
+`;
+
 
 const Header = style.div`
     width: 100%;
     height: 60px;
-    background-color: #1E272C;
+    background-color: ${props => props.headerColor};
     border-top-left-radius: inherit;
     border-top-right-radius: inherit;
     display: flex;
@@ -36,7 +98,7 @@ font-family: Roboto;
 font-weight: 300;
 font-style: normal;
 font-size: 18px;
-color: rgb(178, 178, 178);
+color: ${props => props.timeColor};
 `;
 
 const TimeContainer = style.div`
@@ -79,80 +141,53 @@ const ContainerDigits = style.div`
     }
 `;
 
-const DotsButton = style(Button)`
-    background-color: transparent;
-    &:hover {
-        background-color: #0F1316;
-    }
 
-    .icon {
-        color: #A9A8A9;
-        font-size: 25px;
-    }
-`;
+function Time({ time }) {
+
+    const themes = useSelector(selectThemes);
 
 
-function Time() {
-
-    return (
+    return (<>
         <TimeContainer>
             <ContainerDigits>
                 <FontAwesomeIcon className='icon' icon={faCaretUp} />
-                <Digits>00</Digits>
+                <Digits timeColor={themes.colors.timeColor}>{time.hours}</Digits>
                 <FontAwesomeIcon className='icon' icon={faCaretDown} />
             </ContainerDigits>
-            <Digits>:</Digits>
+            <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
             <ContainerDigits>
                 <FontAwesomeIcon className='icon' icon={faCaretUp} />
-                <Digits>00</Digits>
+                <Digits timeColor={themes.colors.timeColor} >{time.minutes}</Digits>
                 <FontAwesomeIcon className='icon' icon={faCaretDown} />
             </ContainerDigits>
-            <Digits>:</Digits>
+            <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
             <ContainerDigits>
-                <Digits>00</Digits>
+                <Digits timeColor={themes.colors.timeColor} >{time.seconds}</Digits>
             </ContainerDigits>
-            <Digits>|</Digits>
+            <Digits timeColor={themes.colors.timeColor} >|</Digits>
             <ContainerDigits>
-                <Digits>00</Digits>
+                <Digits timeColor={themes.colors.timeColor} >{time.score}</Digits>
             </ContainerDigits>
         </TimeContainer>
-    );
+    </>);
 }
 
 const NoteTitle = style.input`
 width: 356px;
 outline: none;
 border: medium none;
-background: rgb(64, 85, 94);
+background: ${props => props.noteBodyColor};
 height: 40px;
 vertical-align: middle;
 font-family: Roboto;
-color: rgb(162, 152, 150);
+color: ${props => props.textColor};
 font-size: 20px;
 padding-left: 15px;
 padding-right: 15px;
 `;
 
-const NoteBody = style.textarea`
-display: block;
-width: 356px;
-    background-color: yellow;
-    height: 190px;
-    background: rgb(64, 85, 94);
-    border: none;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 300;
-    font-size: 18px;
-    line-height: normal;
-    padding-top: 0px;
-    color: rgb(162, 152, 150);
-    padding-left: 15px;
-    padding-right: 15px;
-    outline: none;
-    resize: none;
-`;
 
 
 const EditorWrapper = style.div`
@@ -217,24 +252,50 @@ const EditorWrapper = style.div`
         color: rgb(162, 152, 150);
     }
 
-
-
-
-
-    
 `;
 
 
+const selectThemes = state => state.themes;
 
 
+function Note(props) {
 
+    const [hours, setHours] = useState(props.note.time.hours);
+    const [minutes, setMinutes] = useState(props.note.time.minutes);
+    const [seconds, setSeconds] = useState(props.note.time.seconds);
+    const [score, setScore] = useState(props.note.time.score);
+    const [started, setStarted] = useState(false);
 
+    let timeCollection = {
+        hours,
+        setHours,
+        minutes,
+        setMinutes,
+        seconds,
+        setSeconds,
+        score,
+        setScore
+    }
 
+    const themes = useSelector(selectThemes);
+    const dispatch = useDispatch();
 
+    const handleCount = () => {
+        setSeconds(seconds + 1);
+    };
 
+    useEffect(() => {
+        let intervalID;
+        if (started) {
+            intervalID = setInterval(() => {
+                setSeconds(seconds + 1);
+            }, 1000);
+        } else {
+            clearInterval(intervalID);
+        }
+        return () => clearInterval(intervalID);
+    }, [started, seconds]);
 
-
-function Note() {
 
     let modules = {
         toolbar: [
@@ -245,22 +306,24 @@ function Note() {
         ]
     };
 
-    return <Rectangle>
-        <Header>
-            <SecondButton>
-                <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: '#A9A8A9' }} icon={faCaretRight} />
-            </SecondButton>
-            <Time />
-            <DotsButton>
-                <FontAwesomeIcon className='icon' icon={faEllipsisV} />
-            </DotsButton>
-        </Header>
+    return (<>
+        <GlobalStyle pageColor={themes.colors.pageColor} />
+        <Rectangle noteBodyColor={themes.colors.noteBodyColor}>
+            <Header headerColor={themes.colors.headerColor}>
+                <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => setStarted(true)}>
+                    <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: themes.colors.iconsColor }} icon={faCaretRight} />
+                </SecondButton>
+                <Time time={timeCollection} />
+                <DotsButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover}>
+                    <FontAwesomeIcon className='icon' icon={faEllipsisV} />
+                </DotsButton>
+            </Header>
 
-        <NoteTitle placeholder='Title' />
-        <EditorWrapper>
-            <ReactQuill modules={modules} />
-        </EditorWrapper>
-    </Rectangle>
+            <NoteTitle noteBodyColor={themes.colors.noteBodyColor} textColor={themes.colors.textColor} placeholder='Title' />
+            <EditorWrapper>
+                <ReactQuill modules={modules} />
+            </EditorWrapper>
+        </Rectangle></>);
 };
 
 
