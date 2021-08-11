@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import style from 'styled-components';
 import { GlobalStyle } from './Home';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
+import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { faCaretUp } from '@fortawesome/free-solid-svg-icons'
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import { faPause } from '@fortawesome/free-solid-svg-icons'
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faRedo } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'
 import 'react-quill/dist/quill.core.css'
@@ -70,6 +75,9 @@ const SecondButton = style(Button)`
 
 const DotsButton = style(Button)`
     background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     &:hover {
         background-color: ${props => props.threeDotsCircleColorOnHover};
     }
@@ -90,6 +98,10 @@ const Header = style.div`
     display: flex;
     justify-content: space-around;
     align-items: center;
+`;
+
+const HalfHeader = style(Header)`
+    width: 80%;
 `;
 
 
@@ -142,33 +154,35 @@ const ContainerDigits = style.div`
 `;
 
 
-function Time({ time }) {
+function Time({ note }) {
 
     const themes = useSelector(selectThemes);
+
+    const dispatch = useDispatch();
 
 
     return (<>
         <TimeContainer>
             <ContainerDigits>
-                <FontAwesomeIcon className='icon' icon={faCaretUp} />
-                <Digits timeColor={themes.colors.timeColor}>{time.hours}</Digits>
-                <FontAwesomeIcon className='icon' icon={faCaretDown} />
+                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => dispatch({ type: ACTIONS.INCREMENT_HOURS, payload: { id: note.id } })} />
+                <Digits timeColor={themes.colors.timeColor}>{/* time.hours */ note.time.hours}</Digits>
+                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => dispatch({ type: ACTIONS.DECREMENT_HOURS, payload: { id: note.id } })} />
             </ContainerDigits>
             <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
             <ContainerDigits>
-                <FontAwesomeIcon className='icon' icon={faCaretUp} />
-                <Digits timeColor={themes.colors.timeColor} >{time.minutes}</Digits>
-                <FontAwesomeIcon className='icon' icon={faCaretDown} />
+                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => dispatch({ type: ACTIONS.INCREMENT_MINUTES, payload: { id: note.id } })} />
+                <Digits timeColor={themes.colors.timeColor} >{/*time.minutes */ note.time.minutes}</Digits>
+                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => dispatch({ type: ACTIONS.DECREMENT_MINUTES, payload: { id: note.id } })} />
             </ContainerDigits>
             <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
             <ContainerDigits>
-                <Digits timeColor={themes.colors.timeColor} >{time.seconds}</Digits>
+                <Digits timeColor={themes.colors.timeColor} >{/* time.seconds */ note.time.seconds}</Digits>
             </ContainerDigits>
             <Digits timeColor={themes.colors.timeColor} >|</Digits>
             <ContainerDigits>
-                <Digits timeColor={themes.colors.timeColor} >{time.score}</Digits>
+                <Digits timeColor={themes.colors.timeColor} >{/* time.score */ note.time.score}</Digits>
             </ContainerDigits>
         </TimeContainer>
     </>);
@@ -255,46 +269,111 @@ const EditorWrapper = style.div`
 `;
 
 
+
+const ThirdButton = style(Button)`
+    background-color: ${props => props.xButtonCircleColor};
+    &:hover {
+        background-color:  ${props => props.xButtonCircleColorOnHover};
+        &::after {
+            display: block;
+        }
+        &:before {
+            display: block;
+            content: 'long press to delete all';
+            width: 180px;
+        }
+    }
+    &::after {
+        content: 'Long press to delete all';
+        width: 200px;
+        font-family: Roboto;
+        font-weight: 300;
+        font-style: normal;
+        font-size: 16px;
+        color: ${props => props.textColor};
+        position: absolute;
+        left: 120%;
+        display: none;
+
+
+
+    }
+`;
+
+const XButton = style(ThirdButton)`
+&:hover {
+    &::after {
+        display: none;
+    }
+    &::before {
+        display: block;
+        content: 'delete';
+        width: 60px;
+    }
+}
+`;
+
+const DuplicateButton = style(DotsButton)`
+&:hover {
+    &::before {
+        display: block;
+        content: 'duplicate';
+        width: 80px;
+    }
+}
+`;
+
+const ResetButton = style(DuplicateButton)`
+&:hover {
+    &::before {
+        display: block;
+        content: 'reset time';
+        width: 100px;
+    }
+}
+`;
+
+
 const selectThemes = state => state.themes;
+
 
 
 function Note(props) {
 
-    const [hours, setHours] = useState(props.note.time.hours);
-    const [minutes, setMinutes] = useState(props.note.time.minutes);
-    const [seconds, setSeconds] = useState(props.note.time.seconds);
-    const [score, setScore] = useState(props.note.time.score);
-    const [started, setStarted] = useState(false);
-
-    let timeCollection = {
-        hours,
-        setHours,
-        minutes,
-        setMinutes,
-        seconds,
-        setSeconds,
-        score,
-        setScore
-    }
 
     const themes = useSelector(selectThemes);
     const dispatch = useDispatch();
 
-    const handleCount = () => {
-        setSeconds(seconds + 1);
-    };
+    const dotsRef = useRef(faEllipsisV);
+    const leftArrowRef = useRef(faArrowLeft);
+
+    const [title, setTitle] = useState('');
+    const [text, setText] = useState('');
+
+    const quillRef = useRef(null);
+
+
 
     useEffect(() => {
         let intervalID;
-        if (started) {
+        if (props.note.playing) {
             intervalID = setInterval(() => {
-                setSeconds(seconds + 1);
+                if (props.note.time.minutes >= 59 && props.note.time.seconds >= 59) {
+                    dispatch({ type: ACTIONS.UPDATE_HOURS, payload: { id: props.elId, hours: props.note.time.hours + 1 } });
+                }
+
+                else if (props.note.time.seconds >= 59) {
+                    dispatch({ type: ACTIONS.UPDATE_MINUTES, payload: { id: props.elId, minutes: props.note.time.minutes + 1 } });
+                }
+                else
+                    dispatch({ type: ACTIONS.UPDATE_SECONDS, payload: { id: props.elId, seconds: props.note.time.seconds + 1 } });
             }, 1000);
         } else {
             clearInterval(intervalID);
         }
         return () => clearInterval(intervalID);
-    }, [started, seconds]);
+    }, [props.note.playing, props.note.time.seconds]);
+
 
 
     let modules = {
@@ -306,22 +385,48 @@ function Note(props) {
         ]
     };
 
+    function Decision() {
+        if (props.note.options === true) {
+            return (<>
+                <XButton xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DELETE_NOTE, payload: { id: props.note.id } })}>
+                    <FontAwesomeIcon style={{ fontSize: '30px', color: themes.colors.iconsColor }} icon={faTimes} />
+                </XButton>
+                <DuplicateButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DUPLICATE, payload: { id: props.note.id } })}>
+                    <FontAwesomeIcon style={{ color: themes.colors.iconsColor, fontSize: '20px', marginLeft: '2px' }} className='icon' icon={faCopy} />
+                </DuplicateButton>
+                <ResetButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.RESET_TIME, payload: { id: props.note.id } })} >
+                    <FontAwesomeIcon style={{ color: themes.colors.iconsColor, fontSize: '20px', marginLeft: '2px' }} className='icon' icon={faRedo} />
+                </ResetButton>
+
+            </>);
+        }
+        return (<>
+            <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.TOGGLE_PLAY, payload: { id: props.elId, lastTime: Date.now() } })
+            }>
+                <FontAwesomeIcon style={{ fontSize: '20px', color: themes.colors.iconsColor }} icon={props.note.playing === true ? faPause : faPlay} />
+            </SecondButton>
+            <Time note={props.note} />
+        </>);
+    }
+
     return (<>
         <GlobalStyle pageColor={themes.colors.pageColor} />
         <Rectangle noteBodyColor={themes.colors.noteBodyColor}>
-            <Header headerColor={themes.colors.headerColor}>
-                <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => setStarted(true)}>
-                    <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: themes.colors.iconsColor }} icon={faCaretRight} />
-                </SecondButton>
-                <Time time={timeCollection} />
-                <DotsButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover}>
-                    <FontAwesomeIcon className='icon' icon={faEllipsisV} />
+            <Header headerColor={props.note.playing === true ? themes.colors.headerColorPlaying : themes.colors.headerColor}>
+                <HalfHeader headerColor={props.note.playing === true ? themes.colors.headerColorPlaying : themes.colors.headerColor}>
+                    <Decision />
+                </HalfHeader>
+                <DotsButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => {
+                    return dispatch({ type: ACTIONS.OPEN_OPTIONS, payload: { id: props.elId } })
+                }}>
+                    <FontAwesomeIcon className='icon' style={{ color: themes.colors.iconsColor }} icon={props.note.options === true ? leftArrowRef.current : dotsRef.current} />
                 </DotsButton>
             </Header>
 
-            <NoteTitle noteBodyColor={themes.colors.noteBodyColor} textColor={themes.colors.textColor} placeholder='Title' />
-            <EditorWrapper>
-                <ReactQuill modules={modules} />
+            <NoteTitle noteBodyColor={themes.colors.noteBodyColor} textColor={themes.colors.textColor} placeholder='Title' value={props.note.title} onChange={(e) => dispatch({ type: ACTIONS.EDIT_TITLE, payload: { id: props.note.id, title: e.target.value } })} />
+            <EditorWrapper   /* dispatch({ type: ACTIONS.EDIT_TEXT, payload: { id: props.note.id, text: e.nativeEvent.target.textContent } }) */
+            >
+                <ReactQuill modules={modules} value={props.note.text || ''} onChange={(e) => dispatch({ type: ACTIONS.EDIT_TEXT, payload: { id: props.note.id, text: e } })} />
             </EditorWrapper>
         </Rectangle></>);
 };

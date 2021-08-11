@@ -1,11 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import style, { createGlobalStyle } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
-import { faCaretRight } from '@fortawesome/free-solid-svg-icons'
+import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faPause } from '@fortawesome/free-solid-svg-icons'
 import { useSelector, useDispatch } from 'react-redux'
 import Note from './Note'
+import ACTIONS from '../features/Actions'
 
 export const GlobalStyle = createGlobalStyle`
     *, *::before, *::after {
@@ -28,7 +30,7 @@ const BigCounter = style.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 60px;
+    padding: 40px;
 `;
 
 
@@ -134,16 +136,21 @@ font-family: Roboto;
 font-weight: 300;
 font-style: normal;
 font-size: 36px;
+margin: auto 15px;
 `;
 
+
+
+
 const NotesContainer = style.div`
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 30px;
     justify-content: space-around;
     align-items: center;
-    flex-wrap: wrap;
     max-width: 1300px;
-    background-color: white;
-    margin: 20px auto;
+    background-color: ${props => props.pageColor};
+    margin: auto;
 
 `;
 
@@ -151,6 +158,7 @@ const NotesContainer = style.div`
 
 const selectNotes = state => state.notes;
 const selectThemes = state => state.themes;
+const selectClock = state => state.clock;
 
 
 
@@ -161,10 +169,35 @@ function Home() {
 
     const notes = useSelector(selectNotes);
     const themes = useSelector(selectThemes);
+    const clock = useSelector(selectClock);
+
+    const isSomethingPlaying = (notes) => {
+        let decision = false;
+        notes.map(note => {
+            if (note.playing === true)
+                decision = true;
+        })
+        return decision;
+    }
+
 
     const dispatch = useDispatch();
 
-    const notesContainerRef = useRef(null);
+
+    useEffect(() => {
+        let intervalID = setInterval(() => {
+            if (clock.minutes >= 59 && clock.seconds >= 59) {
+                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 1, minutes: 0, seconds: 0 } });
+            }
+
+            else if (clock.seconds >= 59) {
+                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 0, minutes: 1, seconds: 0 } });
+            }
+            else
+                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 0, minutes: 0, seconds: 1 } });
+        }, 1000);
+        return () => clearInterval(intervalID);
+    }, [notes])
 
 
     return (<>
@@ -172,35 +205,36 @@ function Home() {
         <PageContainer pageColor={themes.colors.pageColor}>
             <BigCounter>
                 <ButtonsContainer>
-                    <FirstButton plusIconCircleColor={themes.colors.plusIconCircleColor} plusIconCircleColorOnHover={themes.colors.plusIconCircleColorOnHover}>
+                    <FirstButton plusIconCircleColor={themes.colors.plusIconCircleColor} plusIconCircleColorOnHover={themes.colors.plusIconCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.CREATE_NOTE })}>
                         <FontAwesomeIcon style={{ fontSize: '25px', color: themes.colors.iconsColor }} icon={faPlus} />
                     </FirstButton>
 
-                    <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover}>
-                        <FontAwesomeIcon style={{ fontSize: '40px', marginLeft: '5px', color: themes.colors.iconsColor }} icon={faCaretRight} />
+                    <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.LAST_PLAYING })
+                    }>
+                        <FontAwesomeIcon style={{ fonSize: '25px', marginLeft: '2px', color: themes.colors.iconsColor }} icon={isSomethingPlaying(notes) === true ? faPause : faPlay} />
                     </SecondButton>
 
-                    <ThirdButton textColor={themes.colors.textColor} xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover}>
+                    <ThirdButton textColor={themes.colors.textColor} xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DELETE_ALL })}>
                         <FontAwesomeIcon style={{ fontSize: '30px', color: themes.colors.iconsColor }} icon={faTimes} />
                     </ThirdButton>
                 </ButtonsContainer>
 
                 <Counter textColor={themes.colors.textColor}>
-                    <ReduxElement value='0' />
+                    <ReduxElement>{clock.hours}</ReduxElement>
                     <ReduxElement> : </ReduxElement>
-                    <ReduxElement value='0' />
+                    <ReduxElement>{clock.minutes}</ReduxElement>
                     <ReduxElement> : </ReduxElement>
-                    <ReduxElement value='0' />
+                    <ReduxElement>{clock.seconds}</ReduxElement>
                     <ReduxElement> | </ReduxElement>
-                    <ReduxElement value='0' />
+                    <ReduxElement>{clock.score}</ReduxElement>
                 </Counter>
 
 
             </BigCounter>
 
-            <NotesContainer ref={notesContainerRef}>
+            <NotesContainer pageColor={themes.colors.pageColor}>
                 {notes.map(note => {
-                    return (<Note key={note.id} note={note} />);
+                    return (<Note key={note.id} note={note} elId={note.id} />);
                 })}
             </NotesContainer>
 
