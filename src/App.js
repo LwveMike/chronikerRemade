@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NavBar from './components/NavBar'
-import Note from './components/Note';
+
 
 function App() {
   return (
     <div>
       <NavBar />
+
     </div>
   );
 }

@@ -2,7 +2,7 @@ import ACTIONS from './Actions';
 
 const initialState = {
     theme: 'dark',
-    checked: false,
+    checked: true,
     colors: {
         navBarColor: '#1E272C',
         logoCircleColor: '#283D3B',
@@ -40,26 +40,26 @@ const themes = (state = initialState, action) => {
             checked: !state.checked,
             colors: {
                 ...state.colors,
-                navBarColor: state.theme === 'dark' ? '#1E272C' : '#197278',
-                logoCircleColor: state.theme === 'dark' ? '#283D3B' : '#FBFBF0',
-                navBarItems: state.theme === 'dark' ? '#B2B2B2' : '#E5E5E5',
-                navBarItemsOnHover: state.theme === 'dark' ? '#9A7979' : '#664C4C',
-                iconsColor: state.theme === 'dark' ? 'rgb(169, 168, 169)' : '#FBFBF0',
-                plusIconCircleColor: state.theme === 'dark' ? '#104A4E' : 'rgb(25, 114, 120)',
-                plusIconCircleColorOnHover: state.theme === 'dark' ? 'rgb(7, 34, 36)' : '#104A4E',
-                playButtonCircleColor: state.theme === 'dark' ? 'rgb(40, 61, 59)' : '#283D3B',
-                playButtonCircleColorOnHover: state.theme === 'dark' ? 'rgb(7, 34, 36)' : '#141E1D',
-                headerColor: state.theme === 'dark' ? '#1E272C' : '#197278',
-                headerColorPlaying: state.theme === 'dark' ? '#4c1b15' : '#C44536',
-                threeDotsCircleColorOnHover: state.theme === 'dark' ? '#0F1316' : '#0D393C',
-                noteBodyColor: state.theme === 'dark' ? '#40555E' : '#FBFBF0',
-                bellNotificationCircleColor: state.theme === 'dark' ? 'rgb(16, 74, 78)' : 'rgb(25, 114, 120)',
-                bellNotificationCircleColorOnHover: state.theme === 'dark' ? '#072224' : '#104A4E',
-                inputBackgroundColor: state.theme === 'dark' ? '#40555E' : '#FBFBF0',
-                timeColor: state.theme === 'dark' ? '#9D7B7B' : 'white',
-                switchColor: state.theme === 'dark' ? '#772E25' : '#E5E5E5',
-                textColor: state.theme === 'dark' ? '#9D7B7B' : '#6C6665',
-                pageColor: state.theme === 'dark' ? '#263238' : '#E5E5E5'
+                navBarColor: state.theme === 'light' ? '#1E272C' : '#197278',
+                logoCircleColor: state.theme === 'light' ? '#283D3B' : '#FBFBF0',
+                navBarItems: state.theme === 'light' ? '#B2B2B2' : '#E5E5E5',
+                navBarItemsOnHover: state.theme === 'light' ? '#9A7979' : '#664C4C',
+                iconsColor: state.theme === 'light' ? 'rgb(169, 168, 169)' : '#FBFBF0',
+                plusIconCircleColor: state.theme === 'light' ? '#104A4E' : 'rgb(25, 114, 120)',
+                plusIconCircleColorOnHover: state.theme === 'light' ? 'rgb(7, 34, 36)' : '#104A4E',
+                playButtonCircleColor: state.theme === 'light' ? 'rgb(40, 61, 59)' : '#283D3B',
+                playButtonCircleColorOnHover: state.theme === 'light' ? 'rgb(7, 34, 36)' : '#141E1D',
+                headerColor: state.theme === 'light' ? '#1E272C' : '#197278',
+                headerColorPlaying: state.theme === 'light' ? '#4c1b15' : '#C44536',
+                threeDotsCircleColorOnHover: state.theme === 'light' ? '#0F1316' : '#0D393C',
+                noteBodyColor: state.theme === 'light' ? '#40555E' : '#FBFBF0',
+                bellNotificationCircleColor: state.theme === 'light' ? 'rgb(16, 74, 78)' : 'rgb(25, 114, 120)',
+                bellNotificationCircleColorOnHover: state.theme === 'light' ? '#072224' : '#104A4E',
+                inputBackgroundColor: state.theme === 'light' ? '#40555E' : '#FBFBF0',
+                timeColor: state.theme === 'light' ? '#9D7B7B' : 'white',
+                switchColor: state.theme === 'light' ? '#772E25' : '#E5E5E5',
+                textColor: state.theme === 'light' ? '#9D7B7B' : '#6C6665',
+                pageColor: state.theme === 'light' ? '#263238' : '#E5E5E5'
             }
         }
         default: return state;

@@ -8,6 +8,7 @@ import { faPause } from '@fortawesome/free-solid-svg-icons'
 import { useSelector, useDispatch } from 'react-redux'
 import Note from './Note'
 import ACTIONS from '../features/Actions'
+import { useLongPress } from 'use-long-press';
 
 export const GlobalStyle = createGlobalStyle`
     *, *::before, *::after {
@@ -136,7 +137,7 @@ font-family: Roboto;
 font-weight: 300;
 font-style: normal;
 font-size: 36px;
-margin: auto 15px;
+margin: auto 10px;
 `;
 
 
@@ -162,7 +163,6 @@ const selectClock = state => state.clock;
 
 
 
-
 function Home() {
 
 
@@ -170,6 +170,10 @@ function Home() {
     const notes = useSelector(selectNotes);
     const themes = useSelector(selectThemes);
     const clock = useSelector(selectClock);
+
+    const dispatch = useDispatch();
+
+
 
     const isSomethingPlaying = (notes) => {
         let decision = false;
@@ -180,24 +184,12 @@ function Home() {
         return decision;
     }
 
+    const bind = useLongPress(() => {
+        dispatch({ type: ACTIONS.RESET_CLOCK });
+        return dispatch({ type: ACTIONS.DELETE_ALL })
+    }, { threshold: 1000 });
 
-    const dispatch = useDispatch();
 
-
-    useEffect(() => {
-        let intervalID = setInterval(() => {
-            if (clock.minutes >= 59 && clock.seconds >= 59) {
-                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 1, minutes: 0, seconds: 0 } });
-            }
-
-            else if (clock.seconds >= 59) {
-                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 0, minutes: 1, seconds: 0 } });
-            }
-            else
-                dispatch({ type: ACTIONS.UPDATE_CLOCK, payload: { hours: 0, minutes: 0, seconds: 1 } });
-        }, 1000);
-        return () => clearInterval(intervalID);
-    }, [notes])
 
 
     return (<>
@@ -214,7 +206,7 @@ function Home() {
                         <FontAwesomeIcon style={{ fonSize: '25px', marginLeft: '2px', color: themes.colors.iconsColor }} icon={isSomethingPlaying(notes) === true ? faPause : faPlay} />
                     </SecondButton>
 
-                    <ThirdButton textColor={themes.colors.textColor} xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DELETE_ALL })}>
+                    <ThirdButton textColor={themes.colors.textColor} xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} {...bind}>
                         <FontAwesomeIcon style={{ fontSize: '30px', color: themes.colors.iconsColor }} icon={faTimes} />
                     </ThirdButton>
                 </ButtonsContainer>

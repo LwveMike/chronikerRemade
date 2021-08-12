@@ -149,8 +149,8 @@ const notes = (state = [], action) => {
                 ...note,
                 time: {
                     ...note.time,
-                    hours: note.time.hours + 1 > 23 ? 23 : note.time.hours + 1,
-                    score: (note.time.hours + 1 > 23 ? 23 : note.time.hours + 1 + note.time.minutes / 60 + note.time.seconds / 3600).toFixed(2)
+                    hours: note.time.hours + 1,
+                    score: (note.time.hours + 1 + note.time.minutes / 60 + note.time.seconds / 3600).toFixed(2)
                 }
             }
         });

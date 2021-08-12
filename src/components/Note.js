@@ -164,16 +164,29 @@ function Time({ note }) {
     return (<>
         <TimeContainer>
             <ContainerDigits>
-                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => dispatch({ type: ACTIONS.INCREMENT_HOURS, payload: { id: note.id } })} />
+                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => {
+                    dispatch({ type: ACTIONS.INCREMENT_CLOCK_HOURS })
+                    return dispatch({ type: ACTIONS.INCREMENT_HOURS, payload: { id: note.id } })
+                }} />
                 <Digits timeColor={themes.colors.timeColor}>{/* time.hours */ note.time.hours}</Digits>
-                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => dispatch({ type: ACTIONS.DECREMENT_HOURS, payload: { id: note.id } })} />
+                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => {
+                    dispatch({ type: ACTIONS.DECREMENT_CLOCK_HOURS })
+                    dispatch({ type: ACTIONS.DECREMENT_HOURS, payload: { id: note.id } })
+                }} />
             </ContainerDigits>
             <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
             <ContainerDigits>
-                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => dispatch({ type: ACTIONS.INCREMENT_MINUTES, payload: { id: note.id } })} />
+                <FontAwesomeIcon className='icon' icon={faCaretUp} onClick={() => {
+                    dispatch({ type: ACTIONS.INCREMENT_CLOCK_MINUTES })
+                    dispatch({ type: ACTIONS.INCREMENT_MINUTES, payload: { id: note.id } })
+                }
+                } />
                 <Digits timeColor={themes.colors.timeColor} >{/*time.minutes */ note.time.minutes}</Digits>
-                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => dispatch({ type: ACTIONS.DECREMENT_MINUTES, payload: { id: note.id } })} />
+                <FontAwesomeIcon className='icon' icon={faCaretDown} onClick={() => {
+                    dispatch({ type: ACTIONS.DECREMENT_CLOCK_MINUTES })
+                    return dispatch({ type: ACTIONS.DECREMENT_MINUTES, payload: { id: note.id } })
+                }} />
             </ContainerDigits>
             <Digits timeColor={themes.colors.timeColor} >:</Digits>
 
@@ -335,6 +348,7 @@ const ResetButton = style(DuplicateButton)`
 
 
 const selectThemes = state => state.themes;
+const selectClock = state => state.clock;
 
 
 
@@ -342,15 +356,13 @@ function Note(props) {
 
 
     const themes = useSelector(selectThemes);
+    const clock = useSelector(selectClock);
     const dispatch = useDispatch();
 
     const dotsRef = useRef(faEllipsisV);
     const leftArrowRef = useRef(faArrowLeft);
 
-    const [title, setTitle] = useState('');
-    const [text, setText] = useState('');
 
-    const quillRef = useRef(null);
 
 
 
@@ -365,8 +377,11 @@ function Note(props) {
                 else if (props.note.time.seconds >= 59) {
                     dispatch({ type: ACTIONS.UPDATE_MINUTES, payload: { id: props.elId, minutes: props.note.time.minutes + 1 } });
                 }
-                else
+                else {
                     dispatch({ type: ACTIONS.UPDATE_SECONDS, payload: { id: props.elId, seconds: props.note.time.seconds + 1 } });
+                    dispatch({ type: ACTIONS.UPDATE_CLOCK });
+                }
+
             }, 1000);
         } else {
             clearInterval(intervalID);
@@ -388,22 +403,33 @@ function Note(props) {
     function Decision() {
         if (props.note.options === true) {
             return (<>
-                <XButton xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DELETE_NOTE, payload: { id: props.note.id } })}>
+                <XButton xButtonCircleColor={themes.colors.xButtonCircleColor} xButtonCircleColorOnHover={themes.colors.xButtonCircleColorOnHover} onClick={() => {
+                    dispatch({ type: ACTIONS.RETRIEVE_CLOCK_TIME, payload: { note: props.note } })
+                    return dispatch({ type: ACTIONS.DELETE_NOTE, payload: { id: props.note.id } })
+                }
+                }>
                     <FontAwesomeIcon style={{ fontSize: '30px', color: themes.colors.iconsColor }} icon={faTimes} />
                 </XButton>
-                <DuplicateButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.DUPLICATE, payload: { id: props.note.id } })}>
+                <DuplicateButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => {
+                    dispatch({ type: ACTIONS.ADD_CLOCK_TIME_WHEN_DUPLICATE, payload: { note: props.note } });
+                    return dispatch({ type: ACTIONS.DUPLICATE, payload: { id: props.note.id } })
+                }
+                }>
                     <FontAwesomeIcon style={{ color: themes.colors.iconsColor, fontSize: '20px', marginLeft: '2px' }} className='icon' icon={faCopy} />
                 </DuplicateButton>
-                <ResetButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.RESET_TIME, payload: { id: props.note.id } })} >
+                <ResetButton threeDotsCircleColorOnHover={themes.colors.threeDotsCircleColorOnHover} onClick={() => {
+                    dispatch({ type: ACTIONS.RETRIEVE_CLOCK_TIME, payload: { note: props.note } })
+                    return dispatch({ type: ACTIONS.RESET_TIME, payload: { id: props.note.id } })
+                }} >
                     <FontAwesomeIcon style={{ color: themes.colors.iconsColor, fontSize: '20px', marginLeft: '2px' }} className='icon' icon={faRedo} />
                 </ResetButton>
 
             </>);
         }
         return (<>
-            <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.TOGGLE_PLAY, payload: { id: props.elId, lastTime: Date.now() } })
+            <SecondButton playButtonCircleColor={themes.colors.playButtonCircleColor} playButtonCircleColorOnHover={themes.colors.playButtonCircleColorOnHover} onClick={() => dispatch({ type: ACTIONS.TOGGLE_PLAY, payload: { id: props.elId, lastTime: Date.now(), } })
             }>
-                <FontAwesomeIcon style={{ fontSize: '20px', color: themes.colors.iconsColor }} icon={props.note.playing === true ? faPause : faPlay} />
+                <FontAwesomeIcon style={{ marginLeft: props.note.playing === true ? '0px' : '2px', color: themes.colors.iconsColor }} icon={props.note.playing === true ? faPause : faPlay} />
             </SecondButton>
             <Time note={props.note} />
         </>);

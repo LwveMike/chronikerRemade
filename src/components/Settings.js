@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PageContainer, Button, GlobalStyle } from './Home';
 import style from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -32,29 +32,45 @@ background-color: ${props => props.bellNotificationCircleColor};
 }
 `;
 
-const NotificationInput = style.input`
-width: 80px;
-padding: 0px 10px;
-border-radius: 5px;
-font-size: 16px;
-height: 34px;
-text-align: center;
-vertical-align: middle;
-font-family: Roboto;
-color: ${props => props.textColor};
-background-color: ${props => props.inputBackgroundColor};
-outline: none;
-border: none;
-`;
+// const NotificationInput = style.input`
+// width: 80px;
+// padding: 0px 10px;
+// border-radius: 5px;
+// font-size: 16px;
+// height: 34px;
+// text-align: center;
+// vertical-align: middle;
+// font-family: Roboto;
+// color: ${props => props.textColor};
+// background-color: ${props => props.inputBackgroundColor};
+// outline: none;
+// border: none;
+// `;
 
 const Separator = style.div`
     width: 100px;
     display: flex;
     justify-content: center;
+    .notification {
+        width: 80px;
+        padding: 0px 10px;
+        border-radius: 5px;
+        font-size: 16px;
+        height: 34px;
+        text-align: center;
+        vertical-align: middle;
+        font-family: Roboto;
+        outline: none;
+        border: none;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+    }
 `;
 
 
 const selectThemes = state => state.themes;
+
+
 
 
 function Settings() {
@@ -62,13 +78,38 @@ function Settings() {
     const themes = useSelector(selectThemes);
     const dispatch = useDispatch();
 
+    let inputStyle = {
+        color: themes.colors.textColor,
+        backgroundColor: themes.colors.inputBackgroundColor
+
+    }
+
+    const [minutes, setMinutes] = useState('0');
+    const [notification, setNotification] = useState({});
+
+    const accesNotifications = () => {
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notification");
+        }
+        else if (Notification.permission === "granted") {
+            setNotification(new Notification('Chroniker Remade'))
+        }
+        else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    var notification = new Notification("Hi there!");
+                }
+            });
+        }
+    }
+
     return (<>
         <GlobalStyle pageColor={themes.colors.pageColor} />
         <PageContainer pageColor={themes.colors.pageColor}>
             <Field>
                 <PinkText textColor={themes.colors.textColor}>Request notification permission</PinkText>
                 <Separator>
-                    <Bell bellNotificationCircleColor={themes.colors.bellNotificationCircleColor} bellNotificationCircleColorOnHover={themes.colors.bellNotificationCircleColorOnHover}>
+                    <Bell bellNotificationCircleColor={themes.colors.bellNotificationCircleColor} bellNotificationCircleColorOnHover={themes.colors.bellNotificationCircleColorOnHover} onClick={accesNotifications} >
                         <FontAwesomeIcon style={{ color: themes.colors.iconsColor }} icon={faBell} />
                     </Bell>
                 </Separator>
@@ -77,7 +118,7 @@ function Settings() {
             <Field>
                 <PinkText textColor={themes.colors.textColor}>Notify every ( minutes )</PinkText>
                 <Separator>
-                    <NotificationInput textColor={themes.colors.textColor} inputBackgroundColor={themes.colors.inputBackgroundColor} defaultValue='0' />
+                    <input className='notification' style={inputStyle} value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/, ''))} />
                 </Separator>
             </Field>
 
@@ -87,6 +128,7 @@ function Settings() {
                     <Switch value={themes.checked} checked={themes.checked} onChange={() => dispatch({ type: ACTIONS.CHANGE_THEME })} />
                 </Separator>
             </Field>
+            <div>{JSON.stringify(notification.body)} {Notification.permission}</div>
         </PageContainer>
     </>);
 

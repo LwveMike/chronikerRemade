@@ -16,10 +16,14 @@ const ACTIONS = {
     DUPLICATE: 'note/duplicate',
     RESET_TIME: 'note/reset-time',
     LAST_PLAYING: 'note/last-playing',
-    UPDATE_CLOCK_HOURS: 'clock/update-clock-hours',
-    UPDATE_CLOCK_MINUTES: 'clock/update-clock-minutes',
-    UPDATE_CLOCK_SECONDS: 'clock/update-clock-seconds',
     UPDATE_CLOCK: 'clock/update-clock',
+    INCREMENT_CLOCK_HOURS: 'clock/increment-clock-hours',
+    INCREMENT_CLOCK_MINUTES: 'clock/increment-clock-minutes',
+    DECREMENT_CLOCK_HOURS: 'clock/decrement-clock-hours',
+    DECREMENT_CLOCK_MINUTES: 'clock/decrement-clock-minutes',
+    RESET_CLOCK: 'clock/reset-clock',
+    RETRIEVE_CLOCK_TIME: 'clock/retrieve-clock-time',
+    ADD_CLOCK_TIME_WHEN_DUPLICATE: 'clock/add-clock-time-when-duplicate',
     CHANGE_THEME: 'theme/change-theme'
 }
 
