@@ -24,6 +24,10 @@ const ACTIONS = {
     RESET_CLOCK: 'clock/reset-clock',
     RETRIEVE_CLOCK_TIME: 'clock/retrieve-clock-time',
     ADD_CLOCK_TIME_WHEN_DUPLICATE: 'clock/add-clock-time-when-duplicate',
+    NOTIFICATION_START: 'notification/notification-start',
+    NOTIFICATION_COUNT_SECONDS: 'notification/notification-count-seconds',
+    NOTIFICATION_CHANGE_MINUTES: 'notification/notification-change-minutes',
+    NOTIFICATION_RESET_SECONDS: 'notification/notification-reset-seconds',
     CHANGE_THEME: 'theme/change-theme'
 }
 

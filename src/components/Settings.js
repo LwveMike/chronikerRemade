@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageContainer, Button, GlobalStyle } from './Home';
 import style from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -6,6 +6,7 @@ import { faBell } from '@fortawesome/free-solid-svg-icons'
 import Switch from '@material-ui/core/Switch';
 import { useSelector, useDispatch } from 'react-redux'
 import ACTIONS from '../features/Actions'
+
 
 
 const Field = style.div`
@@ -69,6 +70,8 @@ const Separator = style.div`
 
 
 const selectThemes = state => state.themes;
+const selectNotes = state => state.notes;
+const selectNotification = state => state.notification;
 
 
 
@@ -76,6 +79,8 @@ const selectThemes = state => state.themes;
 function Settings() {
 
     const themes = useSelector(selectThemes);
+    const notes = useSelector(selectNotes);
+    const notification = useSelector(selectNotification);
     const dispatch = useDispatch();
 
     let inputStyle = {
@@ -84,24 +89,39 @@ function Settings() {
 
     }
 
-    const [minutes, setMinutes] = useState('0');
-    const [notification, setNotification] = useState({});
+    useEffect(() => {
+        let interval;
+        if (notification.isActive) {
+            interval = setInterval(() => {
+                if (notification.seconds >= notification.total) {
+                    new Notification('Chroniker Remade', { body: `${notification.seconds / 60} minutes passed.` });
+                    dispatch({ type: ACTIONS.NOTIFICATION_RESET_SECONDS });
+                }
+                dispatch({ type: ACTIONS.NOTIFICATION_COUNT_SECONDS });
+            }, 1000);
+        }
+        else if (!notification.isActive && notification.seconds !== 0)
+            clearInterval(interval);
+
+        return () => clearInterval(interval);
+    }, [notification.isActive, notification.seconds]);
+
 
     const accesNotifications = () => {
         if (!("Notification" in window)) {
             alert("This browser does not support desktop notification");
         }
         else if (Notification.permission === "granted") {
-            setNotification(new Notification('Chroniker Remade'))
+            new Notification('Chroniker Remade', { body: `Notifications are already active, check your browser to turn off` });
         }
         else if (Notification.permission !== "denied") {
             Notification.requestPermission().then((permission) => {
                 if (permission === "granted") {
-                    var notification = new Notification("Hi there!");
+                    dispatch({ type: ACTIONS.NOTIFICATION_START });
                 }
             });
         }
-    }
+    };
 
     return (<>
         <GlobalStyle pageColor={themes.colors.pageColor} />
@@ -109,7 +129,7 @@ function Settings() {
             <Field>
                 <PinkText textColor={themes.colors.textColor}>Request notification permission</PinkText>
                 <Separator>
-                    <Bell bellNotificationCircleColor={themes.colors.bellNotificationCircleColor} bellNotificationCircleColorOnHover={themes.colors.bellNotificationCircleColorOnHover} onClick={accesNotifications} >
+                    <Bell bellNotificationCircleColor={themes.colors.bellNotificationCircleColor} bellNotificationCircleColorOnHover={themes.colors.bellNotificationCircleColorOnHover} onClick={() => accesNotifications()} >
                         <FontAwesomeIcon style={{ color: themes.colors.iconsColor }} icon={faBell} />
                     </Bell>
                 </Separator>
@@ -118,7 +138,7 @@ function Settings() {
             <Field>
                 <PinkText textColor={themes.colors.textColor}>Notify every ( minutes )</PinkText>
                 <Separator>
-                    <input className='notification' style={inputStyle} value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/, ''))} />
+                    <input className='notification' style={inputStyle} value={notification.minutes} onChange={(e) => dispatch({ type: ACTIONS.NOTIFICATION_CHANGE_MINUTES, payload: { minutes: e.target.value.replace(/\D/, '') } })} />
                 </Separator>
             </Field>
 
@@ -128,7 +148,6 @@ function Settings() {
                     <Switch value={themes.checked} checked={themes.checked} onChange={() => dispatch({ type: ACTIONS.CHANGE_THEME })} />
                 </Separator>
             </Field>
-            <div>{JSON.stringify(notification.body)} {Notification.permission}</div>
         </PageContainer>
     </>);
 
